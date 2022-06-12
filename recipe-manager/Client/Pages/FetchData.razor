@@ -1,0 +1,63 @@
+﻿@page "/fetchdata"
+@attribute [Authorize(Policy = "AdminsOnly")]
+@inject HttpClient Http
+@inject AuthenticationStateProvider AuthStateProvider
+
+<PageTitle>Weather forecast</PageTitle>
+
+<h1>Weather forecast</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <span>Number of items shown: @forecasts.Length</span><br />
+    <button @onclick="GetDate">Refresh</button>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Temp. (C)</th>
+                <th>Temp. (F)</th>
+                <th>Summary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <Virtualize Items="forecasts" Context="forecast">
+                <tr>
+                    <td>@forecast.Date.ToShortDateString()</td>
+                    <td>@forecast.TemperatureC</td>
+                    <td>@forecast.TemperatureF</td>
+                    <td>@forecast.Summary</td>
+                </tr>
+            </Virtualize>
+        </tbody>
+    </table>
+}
+
+@code {
+    private WeatherForecast[]? forecasts;
+
+    protected override async Task OnInitializedAsync()
+    {
+      await GetDate();
+    }
+
+    async Task GetDate()
+    {
+        var reqeust = await Http.GetAsync("WeatherForecast");
+        if (!reqeust.IsSuccessStatusCode)
+        {
+            await AuthStateProvider.GetAuthenticationStateAsync();
+        }
+        else
+        {
+            forecasts = await reqeust.Content.ReadFromJsonAsync<WeatherForecast[]>();
+        }
+    }
+
+}

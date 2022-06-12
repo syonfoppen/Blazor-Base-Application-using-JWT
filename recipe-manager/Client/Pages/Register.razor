@@ -1,0 +1,39 @@
+﻿@page "/register"
+@inject HttpClient Http
+
+<h3>Register</h3>
+
+<EditForm Model="RegisterModel" OnSubmit="HandleLogin">
+    <InputText id="name" @bind-Value="RegisterModel.Name" placeholder="Name"/>
+    <InputText id="email" @bind-Value="RegisterModel.Email" placeholder="Email" type="email"/>
+    <InputText id="password" @bind-Value="RegisterModel.Password" type="password" placeholder="Password"/>
+    <button type="submit" class="btn btn-primary">Register</button>
+</EditForm>
+<p></p>
+@if (!String.IsNullOrEmpty(Message))
+{
+    <span>@Message</span>
+}
+
+
+@code {
+    UserRegisterDto RegisterModel = new UserRegisterDto();
+    string Message = null;
+
+    async Task HandleLogin()
+    {
+        var result = await Http.PostAsJsonAsync("/auth/register", RegisterModel);
+        ServiceResponse<int> respone = await result.Content.ReadFromJsonAsync<ServiceResponse<int>>();
+
+        if (respone.Succes)
+        {
+            Message = "user registered successfully!";
+        }
+        else
+        {
+            Message = respone.Message;
+        }
+        StateHasChanged();
+    }
+
+}
